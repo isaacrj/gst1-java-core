@@ -28,7 +28,7 @@ public class PluginTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         Gst.init("PluginTest", new String[] {});
-        playbackPlugin = Plugin.load("playback");
+        playbackPlugin = Plugin.loadByName("playback");
     }
     
     @AfterClass
@@ -76,7 +76,9 @@ public class PluginTest {
 
     @Test
     public void testGetPackage() {
-        assertTrue(playbackPlugin.getPackage().contains("GStreamer Base"));
+        String pkg = playbackPlugin.getPackage();
+        assertTrue(pkg.contains("GStreamer Base")
+                   || pkg.contains("Gentoo GStreamer"));
     }
 
     @Test

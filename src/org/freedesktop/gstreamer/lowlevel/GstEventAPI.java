@@ -23,12 +23,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.freedesktop.gstreamer.Caps;
-import org.freedesktop.gstreamer.ClockTime;
-import org.freedesktop.gstreamer.Event;
-import org.freedesktop.gstreamer.EventType;
+import org.freedesktop.gstreamer.event.Event;
+import org.freedesktop.gstreamer.event.EventType;
 import org.freedesktop.gstreamer.Format;
-import org.freedesktop.gstreamer.QOSType;
-import org.freedesktop.gstreamer.SeekType;
+import org.freedesktop.gstreamer.event.QOSType;
+import org.freedesktop.gstreamer.event.SeekType;
 import org.freedesktop.gstreamer.Structure;
 import org.freedesktop.gstreamer.TagList;
 import org.freedesktop.gstreamer.lowlevel.annotations.CallerOwnsReturn;
@@ -36,9 +35,11 @@ import org.freedesktop.gstreamer.lowlevel.annotations.Invalidate;
 
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.PointerByReference;
+import org.freedesktop.gstreamer.lowlevel.GstMiniObjectAPI.MiniObjectStruct;
 
 /**
- * GstEvent functions
+ * GstEvent functions and structures
+ * @see https://cgit.freedesktop.org/gstreamer/gstreamer/tree/gst/gstevent.h?h=1.8
  */
 public interface GstEventAPI extends com.sun.jna.Library {
     GstEventAPI GSTEVENT_API = GstNative.load(GstEventAPI.class);
@@ -81,10 +82,8 @@ public interface GstEventAPI extends com.sun.jna.Library {
 						 long[] maxsize, boolean[] async);
     
     /* QOS events */
-    @CallerOwnsReturn Event gst_event_new_qos(QOSType type, double proportion, long diff, ClockTime timestamp);
     @CallerOwnsReturn Event gst_event_new_qos(QOSType type, double proportion, long diff, long timestamp);
-    Pointer ptr_gst_event_new_qos(QOSType type, double proportion, long diff, ClockTime timestamp);
-    void gst_event_parse_qos(Event event, QOSType[] type, double[] proportion, long[] diff, ClockTime[] timestamp);
+    Pointer ptr_gst_event_new_qos(QOSType type, double proportion, long diff, long timestamp);
     void gst_event_parse_qos(Event event, QOSType[] type, double[] proportion, long[] diff, long[] timestamp);
     
     /* seek event */
@@ -102,9 +101,9 @@ public interface GstEventAPI extends com.sun.jna.Library {
     Pointer ptr_gst_event_new_navigation(@Invalidate Structure structure);
 
     /* latency event */
-    @CallerOwnsReturn Event gst_event_new_latency(ClockTime latency);
-    Pointer ptr_gst_event_new_latency(ClockTime latency);
-    void gst_event_parse_latency(Event event, ClockTime[] latency);
+    @CallerOwnsReturn Event gst_event_new_latency(long latency);
+    Pointer ptr_gst_event_new_latency(long latency);
+    void gst_event_parse_latency(Event event, long[] latency);
     
     /* step event */
     @CallerOwnsReturn Event gst_event_new_step(Format format, long amount, double rate, boolean flush, boolean intermediate);
@@ -122,10 +121,23 @@ public interface GstEventAPI extends com.sun.jna.Library {
     @CallerOwnsReturn Event gst_event_new_stream_start(final String stream_id);
     Pointer ptr_gst_event_new_stream_start(final String stream_id);
     
-    
+    /**
+    * GstEvent:
+    * @mini_object: the parent structure
+    * @type: the #GstEventType of the event
+    * @timestamp: the timestamp of the event
+    * @seqnum: the sequence number of the event
+    *
+    * A #GstEvent.
+    */
     public static final class EventStruct extends com.sun.jna.Structure {
-        public volatile GstMiniObjectAPI.MiniObjectStruct mini_object;
-        public volatile int type;
+        public volatile MiniObjectStruct mini_object;
+        
+        /*< public >*/ /* with COW */
+        public volatile EventType type;
+        public volatile long timestamp;
+        public volatile int seqnum;
+                
         public EventStruct(Pointer ptr) {
             useMemory(ptr);
         }
@@ -133,7 +145,8 @@ public interface GstEventAPI extends com.sun.jna.Library {
         @Override
         protected List<String> getFieldOrder() {
             return Arrays.asList(new String[]{
-                "mini_object", "type"
+                "mini_object",
+                "type", "timestamp", "seqnum"
             });
         }
     }

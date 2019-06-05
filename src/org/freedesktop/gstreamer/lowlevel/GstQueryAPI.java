@@ -24,10 +24,9 @@ import java.util.List;
 
 import org.freedesktop.gstreamer.BufferPool;
 import org.freedesktop.gstreamer.Caps;
-import org.freedesktop.gstreamer.ClockTime;
 import org.freedesktop.gstreamer.Format;
-import org.freedesktop.gstreamer.Query;
-import org.freedesktop.gstreamer.QueryType;
+import org.freedesktop.gstreamer.query.Query;
+import org.freedesktop.gstreamer.query.QueryType;
 import org.freedesktop.gstreamer.Structure;
 import org.freedesktop.gstreamer.glib.GQuark;
 import org.freedesktop.gstreamer.lowlevel.annotations.CallerOwnsReturn;
@@ -35,7 +34,8 @@ import org.freedesktop.gstreamer.lowlevel.annotations.CallerOwnsReturn;
 import com.sun.jna.Pointer;
 
 /**
- * GstQuery functions
+ * GstQueryAPI functions and structure
+ * @see https://cgit.freedesktop.org/gstreamer/gstreamer/tree/gst/gstquery.h?h=1.8
  */
 public interface GstQueryAPI extends com.sun.jna.Library {
     GstQueryAPI GSTQUERY_API = GstNative.load(GstQueryAPI.class);
@@ -58,10 +58,10 @@ public interface GstQueryAPI extends com.sun.jna.Library {
     /* latency query */
     @CallerOwnsReturn Query gst_query_new_latency();
     @CallerOwnsReturn Pointer ptr_gst_query_new_latency();
-    void gst_query_set_latency(Query query, boolean live, ClockTime min_latency,
-         ClockTime max_latency);
-    void gst_query_parse_latency(Query query, boolean[] live, ClockTime[] min_latency, 
-		                                 ClockTime[] max_latency);
+    void gst_query_set_latency(Query query, boolean live, long min_latency,
+         long max_latency);
+    void gst_query_parse_latency(Query query, boolean[] live, long[] min_latency, 
+		                                 long[] max_latency);
 
     /* convert query */
     @CallerOwnsReturn Query gst_query_new_convert(Format src_format, /* gint64 */ long value, Format dest_format);
@@ -106,9 +106,10 @@ public interface GstQueryAPI extends com.sun.jna.Library {
     
     public static final class QueryStruct extends com.sun.jna.Structure {
         public volatile GstMiniObjectAPI.MiniObjectStruct mini_object;
-        public volatile int type;
-        public volatile Pointer structure;
-        public volatile Pointer _gst_reserved;
+        
+        /*< public > *//* with COW */
+        public volatile QueryType type;
+        
         public QueryStruct(Pointer ptr) {
             useMemory(ptr);
         }
@@ -116,8 +117,7 @@ public interface GstQueryAPI extends com.sun.jna.Library {
         @Override
         protected List<String> getFieldOrder() {
             return Arrays.asList(new String[]{
-                "mini_object", "type", "structure",
-                "_gst_reserved"
+                "mini_object", "type"
             });
         }
     }

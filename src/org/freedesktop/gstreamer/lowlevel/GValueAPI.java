@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Neil C Smith
+ * Copyright (c) 2017 Neil C Smith
  * Copyright (c) 2009 Levente Farkas
  * Copyright (c) 2008 Andres Colubri
  * Copyright (c) 2008 Wayne Meissner
@@ -25,13 +25,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import org.freedesktop.gstreamer.GObject;
+import org.freedesktop.gstreamer.glib.GObject;
 import org.freedesktop.gstreamer.lowlevel.annotations.CallerOwnsReturn;
 import org.freedesktop.gstreamer.lowlevel.annotations.Invalidate;
 
 import com.sun.jna.Library;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
+import org.freedesktop.gstreamer.glib.NativeObject;
+import org.freedesktop.gstreamer.glib.Natives;
 
 /**
  *
@@ -48,12 +50,12 @@ public interface GValueAPI extends Library {
     }
 
     NoMapperAPI GVALUE_NOMAPPER_API = GNative.loadLibrary("gobject-2.0", NoMapperAPI.class,
-                    new HashMap<String, Object>() {});
+            new HashMap<String, Object>() {});
 
     GValueAPI GVALUE_API = GNative.loadLibrary("gobject-2.0", GValueAPI.class,
-    		new HashMap<String, Object>() {{
-    			put(Library.OPTION_TYPE_MAPPER, new GTypeMapper());
-    		}});
+            new HashMap<String, Object>() {{
+                put(Library.OPTION_TYPE_MAPPER, new GTypeMapper());
+            }});
 
     public static final class GValue extends com.sun.jna.Structure {
     	public static final String GTYPE_NAME = "GValue";
@@ -162,14 +164,18 @@ public interface GValueAPI extends Library {
             } else if (g_type.equals(GType.STRING)) { return toJavaString();
 //            } else if (g_type.equals(GType.OBJECT)) { return toObject();
             } else if (g_type.equals(GType.POINTER)) { return toPointer();
+            } else if (g_type.equals(GValueArray.GTYPE)) {
+                return new GValueArray(GVALUE_API.g_value_get_boxed(this));
             } else if (g_type.getParentType().equals(GType.BOXED)) {
                 Class<? extends NativeObject> cls = GstTypes.classFor(g_type);
                 if (cls != null) {
                     Pointer ptr = GVALUE_API.g_value_get_boxed(this);
-                    return NativeObject.objectFor(ptr, cls, 1, true);
+//                    return NativeObject.objectFor(ptr, cls, 1, true);
+                    return Natives.objectFor(ptr, cls, true, true);
                 }
             }
-            return GVALUE_API.g_value_get_object(this);        
+//            return GVALUE_API.g_value_get_object(this);  
+            return GVALUE_API.g_value_dup_object(this);  
         }
         
         public Integer toInt() {
@@ -235,6 +241,7 @@ public interface GValueAPI extends Library {
     
     public static final class GValueArray extends com.sun.jna.Structure {
     	public static final String GTYPE_NAME = "GValueArray";
+        static final GType GTYPE = GType.valueOf(GTYPE_NAME);
 
     	public volatile int n_values;
         public volatile Pointer values;
@@ -249,8 +256,12 @@ public interface GValueAPI extends Library {
         }
         
         public GValueArray(int n_prealloced) {
+            this(n_prealloced, true);
+        }
+        
+        public GValueArray(int n_prealloced, boolean ownsMemory) {
             this(GVALUE_API.g_value_array_new(n_prealloced));
-            ownsMemory = true;
+            this.ownsMemory = ownsMemory;
         }
         
         public GValueArray(Pointer pointer) {

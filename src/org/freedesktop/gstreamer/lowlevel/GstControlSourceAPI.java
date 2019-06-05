@@ -18,102 +18,111 @@
 
 package org.freedesktop.gstreamer.lowlevel;
 
-import org.freedesktop.gstreamer.ClockTime;
-import org.freedesktop.gstreamer.GObject;
-import org.freedesktop.gstreamer.controller.ControlSource;
-import org.freedesktop.gstreamer.lowlevel.GObjectAPI.GObjectClass;
+//import org.freedesktop.gstreamer.controller.ControlSource;
 import org.freedesktop.gstreamer.lowlevel.GObjectAPI.GParamSpec;
 import org.freedesktop.gstreamer.lowlevel.GValueAPI.GValue;
 
 import com.sun.jna.Callback;
 import com.sun.jna.Library;
 import com.sun.jna.Pointer;
+import com.sun.jna.ptr.DoubleByReference;
 import java.util.Arrays;
 import java.util.List;
+import org.freedesktop.gstreamer.GstObject;
+import static org.freedesktop.gstreamer.lowlevel.GstAPI.GST_PADDING;
+import org.freedesktop.gstreamer.lowlevel.GstObjectAPI.GstObjectClass;
+
+/**
+ * GstControlSource methods and structures
+ * @see https://cgit.freedesktop.org/gstreamer/gstreamer/tree/gst/gstcontrolsource.h?h=1.8
+ */
+
+// @TODO review in line with https://gitlab.freedesktop.org/gstreamer/gstreamer/tree/master/libs/gst/controller
 
 public interface GstControlSourceAPI extends Library {
-	GstControlSourceAPI GSTCONTROLSOURCE_API = GstNative.load("gstcontroller", GstControlSourceAPI.class);
-    int GST_PADDING = GstAPI.GST_PADDING;
-	
-	public static final class TimedValue extends com.sun.jna.Structure {
-    	public static final String GTYPE_NAME = "GstTimedValue";
-		public volatile ClockTime timestamp;
-		public volatile GValue value;
-
-        @Override
-        protected List<String> getFieldOrder() {
-            return Arrays.asList(new String[]{
-                "timestamp", "value"
-            });
-        }
-	}
-	public static final class ValueArray extends com.sun.jna.Structure {
-    	public static final String GTYPE_NAME = "GstValueArray";
-		
-		public volatile String property_name;
-		public volatile int nbsamples;
-		public volatile ClockTime sample_interval;
-		public volatile Pointer values;
-
-        @Override
-        protected List<String> getFieldOrder() {
-            return Arrays.asList(new String[]{
-                "property_name", "nbsamples", "sample_interval",
-                "values"
-            });
-        }
-	}
-	
-	public static interface GstControlSourceGetValue extends Callback {
-        public boolean callback(ControlSource self, ClockTime timestamp, GValue value);
-    }
-	public static interface GstControlSourceGetValueArray extends Callback {
-        public boolean callback(ControlSource self, ClockTime timestamp, ValueArray value_array);
-    }
-	public static interface GstControlSourceBind extends Callback {
-        public boolean callback(ControlSource self, GParamSpec pspec);
-    }
-	
-	public static final class GstControlSourceStruct extends com.sun.jna.Structure {
-		public volatile GObject parent;
-
-		/*< public >*/
-		public volatile GstControlSourceGetValue get_value;             /* Returns the value for a property at a given timestamp */
-		public volatile GstControlSourceGetValueArray get_value_array;  /* Returns values for a property in a given timespan */
-
-		/*< private >*/
-		public volatile boolean bound;
-		public volatile Pointer[] _gst_reserved = new Pointer[GST_PADDING];
-
-        @Override
-        protected List<String> getFieldOrder() {
-            return Arrays.asList(new String[]{
-                "parent", "get_value", "get_value_array",
-                "bound", "_gst_reserved"
-            });
-        }
-	}
-	
-	public static final class GstControlSourceClass extends com.sun.jna.Structure {
-		public volatile GObjectClass parent_class;
-		  
-		public volatile GstControlSourceBind bind;  /* Binds the GstControlSource to a specific GParamSpec */
-
-		  /*< private >*/
-		public volatile Pointer[] _gst_reserved = new Pointer[GST_PADDING];
-
-        @Override
-        protected List<String> getFieldOrder() {
-            return Arrays.asList(new String[]{
-                "parent_class", "bind", "_gst_reserved"
-            });
-        }
-	}
-	
-	GType gst_control_source_get_type();
-
-	/* Functions */
-	boolean gst_control_source_get_value(ControlSource self, ClockTime timestamp, GValue value);
-	boolean gst_control_source_get_value_array(ControlSource self, ClockTime timestamp, ValueArray value_array);
-	boolean gst_control_source_bind(ControlSource self, GParamSpec pspec);
+//    
+//    GstControlSourceAPI GSTCONTROLSOURCE_API = GstNative.load("gstcontroller", GstControlSourceAPI.class);    
+//	
+//    /**    
+//    * GstTimedValue:
+//    * @timestamp: timestamp of the value change
+//    * @value: the corresponding value
+//    *
+//    * Structure for saving a timestamp and a value.
+//    */
+//    public static final class TimedValue extends com.sun.jna.Structure {
+//    	public static final String GTYPE_NAME = "GstTimedValue";
+//        
+//        public volatile long timestamp;
+//        public volatile double value;
+//
+//        @Override
+//        protected List<String> getFieldOrder() {
+//            return Arrays.asList(new String[]{
+//                "timestamp", "value"
+//            });
+//        }
+//    }
+//	
+//    public static interface GstControlSourceGetValue extends Callback {
+//        public boolean callback(ControlSource self, long timestamp, DoubleByReference value);
+//    }
+//    public static interface GstControlSourceGetValueArray extends Callback {
+//        public boolean callback(ControlSource self, long timestamp, long interval, int n_values, DoubleByReference values);
+//    }
+//    public static interface GstControlSourceBind extends Callback {
+//        public boolean callback(ControlSource self, GParamSpec pspec);
+//    }
+//    
+//    /**
+//    * GstControlSource:
+//    * @get_value: Function for returning a value for a given timestamp
+//    * @get_value_array: Function for returning a values array for a given timestamp
+//    *
+//    * The instance structure of #GstControlSource.
+//    */
+//    public static final class GstControlSourceStruct extends com.sun.jna.Structure {
+//        public volatile GstObject parent;
+//
+//        /*< public >*/
+//        public volatile GstControlSourceGetValue get_value;             /* Returns the value for a property at a given timestamp */
+//        public volatile GstControlSourceGetValueArray get_value_array;  /* Returns values for a property in a given timespan */
+//
+//        /*< private >*/
+//        public volatile Pointer[] _gst_reserved = new Pointer[GST_PADDING];
+//
+//        @Override
+//        protected List<String> getFieldOrder() {
+//            return Arrays.asList(new String[]{
+//                "parent", "get_value", "get_value_array",
+//                "_gst_reserved"
+//            });
+//        }
+//    }
+//
+//    /**
+//    * GstControlSourceClass:
+//    * @parent_class: Parent class
+//    *
+//    * The class structure of #GstControlSource.
+//    */
+//    public static final class GstControlSourceClass extends com.sun.jna.Structure {
+//        public volatile GstObjectClass parent_class;
+//
+//        /*< private >*/
+//        public volatile Pointer[] _gst_reserved = new Pointer[GST_PADDING];
+//
+//        @Override
+//        protected List<String> getFieldOrder() {
+//            return Arrays.asList(new String[]{
+//                "parent_class", "_gst_reserved"
+//            });
+//        }
+//    }
+//	
+//    GType gst_control_source_get_type();
+//
+//    /* Functions */
+//    boolean gst_control_source_get_value(ControlSource self, long timestamp, GValue value);
+//    boolean gst_control_source_get_value_array(ControlSource self, long timestamp, long interval, int n_values, DoubleByReference values);
 }

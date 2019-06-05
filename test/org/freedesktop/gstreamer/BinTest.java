@@ -19,12 +19,14 @@
 
 package org.freedesktop.gstreamer;
 
+import org.freedesktop.gstreamer.glib.GError;
+import java.util.ArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -143,7 +145,9 @@ public class BinTest {
         assertEquals("Callback not called", 2, removed.get());
     }
     @Test 
-    public void addLinked() {
+    public void addLinked()
+        throws PadLinkException
+    {
         /* adding an element with linked pads to a bin unlinks the pads */
         Pipeline pipeline = new Pipeline((String) null);
         assertNotNull("Could not create pipeline", pipeline);
@@ -158,7 +162,7 @@ public class BinTest {
         Pad sinkpad = sink.getStaticPad("sink");
         assertNotNull("Could not get sink pad", sinkpad);
         
-        assertEquals("Could not link src and sink pads", PadLinkReturn.OK, srcpad.link(sinkpad));
+        srcpad.link(sinkpad);
 
         /* pads are linked now */
         assertTrue("srcpad not linked", srcpad.isLinked());
@@ -172,14 +176,19 @@ public class BinTest {
         assertFalse("sinkpad is still linked after being added to bin", sinkpad.isLinked());
         
         /* cannot link pads in wrong hierarchy */
-        assertEquals("Should not be able to link pads in different hierarchy", 
-                PadLinkReturn.WRONG_HIERARCHY, srcpad.link(sinkpad));
+        try {
+            srcpad.link(sinkpad);
+            fail("Should not be able to link pads in different hierarchy");
+        } catch (PadLinkException e) {
+            assertEquals("Should not be able to link pads in different hierarchy",
+                PadLinkReturn.WRONG_HIERARCHY, e.getLinkResult());
+        }
 
         /* adding other element to bin as well */
         pipeline.add(sink);
 
         /* now we can link again */
-        assertEquals("Could not link src and sink pads when in same bin", PadLinkReturn.OK, srcpad.link(sinkpad));
+        srcpad.link(sinkpad);
 
         /* check if pads really are linked */
         assertTrue("srcpad not linked", srcpad.isLinked());
@@ -235,58 +244,80 @@ public class BinTest {
     }
     
     @Test
-    public void testLaunch() {
-        Bin bin = Bin.launch("fakesrc ! fakesink", false);
+    public void testParseBin() {
+        ArrayList<GError> errors = new ArrayList<GError>();
+        Bin bin = Gst.parseBinFromDescription("fakesrc ! fakesink", false, errors);
         assertNotNull("Bin not created", bin);
+        assertEquals("parseBinFromDescription with error!", errors.size(), 0);
     }   
     @Test
-    public void testLaunchElementCount() {
-        Bin bin = Bin.launch("fakesrc ! fakesink", false);
+    public void testParseBinElementCount() {
+        ArrayList<GError> errors = new ArrayList<GError>();
+        Bin bin = Gst.parseBinFromDescription("fakesrc ! fakesink", false, errors);
         assertEquals("Number of elements in pipeline incorrect", 2, bin.getElements().size());
+        assertEquals("parseBinFromDescription with error!", errors.size(), 0);
     }
     @Test
-    public void testLaunchSrcElement() {
-    	Bin bin = Bin.launch("fakesrc ! fakesink", false);
+    public void testParseBinSrcElement() {
+        ArrayList<GError> errors = new ArrayList<GError>();
+    	Bin bin = Gst.parseBinFromDescription("fakesrc ! fakesink", false, errors);
         assertEquals("First element not a fakesrc", "fakesrc", bin.getSources().get(0).getFactory().getName());
+        assertEquals("parseBinFromDescription with error!", errors.size(), 0);
     }
     @Test
-    public void testLaunchSinkElement() {
-    	Bin bin = Bin.launch("fakesrc ! fakesink", false);
+    public void testParseBinSinkElement() {
+        ArrayList<GError> errors = new ArrayList<GError>();
+    	Bin bin = Gst.parseBinFromDescription("fakesrc ! fakesink", false, errors);
         assertEquals("First element not a fakesink", "fakesink", bin.getSinks().get(0).getFactory().getName());
+        assertEquals("parseBinFromDescription with error!", errors.size(), 0);
     }
     @Test
-    public void testLaunchDisabledGhostPadsForSource() {
-    	Bin bin = Bin.launch("fakesrc", false);
+    public void testParseBinDisabledGhostPadsForSource() {
+        ArrayList<GError> errors = new ArrayList<GError>();
+    	Bin bin = Gst.parseBinFromDescription("fakesrc", false, errors);
     	assertEquals("Number of src pads incorrect", 0, bin.getSrcPads().size());
+        assertEquals("parseBinFromDescription with error!", errors.size(), 0);
     }
     @Test
-    public void testLaunchDisabledGhostPadsForSink() {
-    	Bin bin = Bin.launch("fakesink", false);
+    public void testParseBinDisabledGhostPadsForSink() {
+        ArrayList<GError> errors = new ArrayList<GError>();
+    	Bin bin = Gst.parseBinFromDescription("fakesink", false, errors);
     	assertEquals("Number of sink pads incorrect", 0, bin.getSinkPads().size());
+        assertEquals("parseBinFromDescription with error!", errors.size(), 0);
     }
     @Test
-    public void testLaunchEnabledGhostPadsForSource() {
-    	Bin bin = Bin.launch("fakesrc", true);
+    public void testParseBinEnabledGhostPadsForSource() {
+        ArrayList<GError> errors = new ArrayList<GError>();
+    	Bin bin = Gst.parseBinFromDescription("fakesrc", true, errors);
     	assertEquals("Number of src pads incorrect", 1, bin.getSrcPads().size());
+        assertEquals("parseBinFromDescription with error!", errors.size(), 0);
     }
     @Test
-    public void testLaunchEnabledGhostPadsForSink() {
-    	Bin bin = Bin.launch("fakesink", true);
+    public void testParseBinEnabledGhostPadsForSink() {
+        ArrayList<GError> errors = new ArrayList<GError>();
+    	Bin bin = Gst.parseBinFromDescription("fakesink", true, errors);
     	assertEquals("Number of sink pads incorrect", 1, bin.getSinkPads().size());
+        assertEquals("parseBinFromDescription with error!", errors.size(), 0);
     }
     @Test
-    public void testLaunchEnabledGhostPadsForSourceWithNoUsablePads() {
-    	Bin bin = Bin.launch("fakesrc ! fakesink", true);
+    public void testParseBinEnabledGhostPadsForSourceWithNoUsablePads() {
+        ArrayList<GError> errors = new ArrayList<GError>();
+    	Bin bin = Gst.parseBinFromDescription("fakesrc ! fakesink", true, errors);
     	assertEquals("Number of src pads incorrect", 0, bin.getSrcPads().size());
+        assertEquals("parseBinFromDescription with error!", errors.size(), 0);
     }
     @Test
-    public void testLaunchEnabledGhostPadsForSinkWithNoUsablePads() {
-    	Bin bin = Bin.launch("fakesrc ! fakesink", true);
+    public void testParseBinEnabledGhostPadsForSinkWithNoUsablePads() {
+        ArrayList<GError> errors = new ArrayList<GError>();
+    	Bin bin = Gst.parseBinFromDescription("fakesrc ! fakesink", true, errors);
     	assertEquals("Number of sink pads incorrect", 0, bin.getSinkPads().size());
+        assertEquals("parseBinFromDescription with error!", errors.size(), 0);
     }
     @Test
-    public void testLaunchEnabledGhostPadsWithNoUsablePads() {
-    	Bin bin = Bin.launch("fakesrc ! fakesink", true);
+    public void testParseBinEnabledGhostPadsWithNoUsablePads() {
+        ArrayList<GError> errors = new ArrayList<GError>();
+    	Bin bin = Gst.parseBinFromDescription("fakesrc ! fakesink", true, errors);
     	assertEquals("Number of pads incorrect", 0, bin.getPads().size());
+        assertEquals("parseBinFromDescription with error!", errors.size(), 0);
     }
 }

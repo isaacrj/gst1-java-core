@@ -1,4 +1,5 @@
 /* 
+ * Copyright (c) 2018 Antonio Morales
  * Copyright (c) 2014 Tom Greenwood <tgreenwood@cafex.com>
  * Copyright (c) 2009 Levente Farkas
  * Copyright (c) 2007, 2008 Wayne Meissner
@@ -23,7 +24,7 @@ package org.freedesktop.gstreamer.lowlevel;
 import org.freedesktop.gstreamer.Buffer;
 import org.freedesktop.gstreamer.Caps;
 import org.freedesktop.gstreamer.Element;
-import org.freedesktop.gstreamer.Event;
+import org.freedesktop.gstreamer.event.Event;
 import org.freedesktop.gstreamer.FlowReturn;
 import org.freedesktop.gstreamer.Pad;
 import org.freedesktop.gstreamer.PadDirection;
@@ -99,6 +100,7 @@ public interface GstPadAPI extends com.sun.jna.Library {
     boolean gst_pad_activate_push(Pad pad, boolean active);
     boolean gst_pad_is_blocked(Pad pad);
     boolean gst_pad_is_blocking(Pad pad);
+    boolean gst_pad_has_current_caps(Pad pad);
     /* get_pad_template returns a non-refcounted PadTemplate */
     PadTemplate gst_pad_get_pad_template(Pad pad);
     
@@ -106,9 +108,9 @@ public interface GstPadAPI extends com.sun.jna.Library {
     @CallerOwnsReturn Caps gst_pad_query_caps(Pad pad, Caps caps);
     void gst_pad_fixate_caps(Pad pad, Caps caps);
     boolean gst_pad_query_accept_caps(Pad pad, Caps caps);
-    boolean gst_pad_set_caps(Pad pad, Caps caps);
-    @CallerOwnsReturn Caps gst_pad_peer_get_caps(Pad pad);
-    boolean gst_pad_peer_accept_caps(Pad pad, Caps caps);
+//    boolean gst_pad_set_caps(Pad pad, Caps caps);
+    @CallerOwnsReturn Caps gst_pad_peer_query_caps(Pad pad, Caps caps);
+    boolean gst_pad_peer_query_accept_caps(Pad pad, Caps caps);
     
     /* capsnego for connected pads */
     @CallerOwnsReturn Caps gst_pad_get_allowed_caps(Pad pad);
@@ -152,11 +154,13 @@ public interface GstPadAPI extends com.sun.jna.Library {
      * @param destroy_data
      * @return
      */
-    NativeLong gst_pad_add_probe(Pad pad, int mask, PadProbeCallback callback, 
+    NativeLong gst_pad_add_probe(GstPadPtr pad, int mask, PadProbeCallback callback, 
     		Pointer user_data, GDestroyNotify destroy_data);
-    void gst_pad_remove_probe(Pad pad, NativeLong id);
+    void gst_pad_remove_probe(GstPadPtr pad, NativeLong id);
     
     Event gst_pad_probe_info_get_event(GstPadProbeInfo probeInfo);
+
+    Buffer gst_pad_probe_info_get_buffer(GstPadProbeInfo probeInfo);
 
 //    NativeLong /* gulong */ gst_pad_add_data_probe(Pad pad, PadDataProbe handler, Pointer data);
 //

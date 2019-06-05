@@ -17,6 +17,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.sun.jna.Structure;
+import org.freedesktop.gstreamer.Gst;
 
 /**
  *
@@ -155,26 +156,20 @@ public class LowLevelStructureTest {
 
         structs.add(GstColorBalanceAPI.ColorBalanceChannelStruct.class);
 
-        structs.add(GstControlSourceAPI.TimedValue.class);
-        structs.add(GstControlSourceAPI.ValueArray.class);
-        structs.add(GstControlSourceAPI.GstControlSourceStruct.class);
-        structs.add(GstControlSourceAPI.GstControlSourceClass.class);
+//        structs.add(GstControlSourceAPI.TimedValue.class);
+//        structs.add(GstControlSourceAPI.GstControlSourceStruct.class);
+//        structs.add(GstControlSourceAPI.GstControlSourceClass.class);
 
-        // error loading native lib?
-        //structs.add(GstControllerAPI.GstControllerStruct.class);
-        //structs.add(GstControllerAPI.GstControllerClass.class);
-
-        structs.add(GstElementAPI.GstElementDetails.class);
         structs.add(GstElementAPI.GstElementStruct.class);
         structs.add(GstElementAPI.GstElementClass.class);
 
         structs.add(GstEventAPI.EventStruct.class);
 
-        structs.add(GstInterpolationControlSourceAPI.GstInterpolationControlSourceStruct.class);
-        structs.add(GstInterpolationControlSourceAPI.GstInterpolationControlSourceClass.class);
-
-        structs.add(GstLFOControlSourceAPI.GstLFOControlSourceStruct.class);
-        structs.add(GstLFOControlSourceAPI.GstLFOControlSourceClass.class);
+//        structs.add(GstInterpolationControlSourceAPI.GstInterpolationControlSourceStruct.class);
+//        structs.add(GstInterpolationControlSourceAPI.GstInterpolationControlSourceClass.class);
+//
+//        structs.add(GstLFOControlSourceAPI.GstLFOControlSourceStruct.class);
+//        structs.add(GstLFOControlSourceAPI.GstLFOControlSourceClass.class);
 
         structs.add(GstMessageAPI.MessageStruct.class);
 
@@ -185,7 +180,11 @@ public class LowLevelStructureTest {
 
         structs.add(GstQueryAPI.QueryStruct.class);
 
-
+        if (Gst.getVersion().getMinor() >= 14) {
+            structs.add(GstWebRTCSessionDescriptionAPI.WebRTCSessionDescriptionStruct.class);
+            structs.add(GstSDPMessageAPI.SDPMessageStruct.class);
+            structs.add(GstPromiseAPI.PromiseStruct.class);
+        }
 
     }
 }
